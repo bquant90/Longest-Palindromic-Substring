@@ -1,0 +1,111 @@
+#include <iostream>
+using namespace std;
+
+int min(int a, int b) {
+  int result = a;
+  if (b < a) {
+    result = b;
+  }
+  return result;
+}
+
+
+// Using an "expand around center" approach to find the longest palindromic substring.
+string longestPalindrome(string s) {
+  int n = s.size(); // Size of the string
+  int maxLength = 1;
+  int start = 0, low, high;
+  for (int i = 0; i < n; i++) {
+    low = i - 1;
+    high = i + 1;
+    
+    // Increment high
+    while (high < n && s[high] == s[i]) {                               
+      high++;
+    }
+    
+    // Decrement low
+    while (low >= 0 && s[low] == s[i]) {                  
+      low--;
+    }
+    
+    
+    // Decrement low, increment high
+    while (low >= 0 && high < n && s[low] == s[high]) {
+      low--;
+      high++;
+    }
+
+    int length = high - low - 1;
+    if (maxLength < length) {
+      maxLength = length;
+      start = low + 1;
+    }
+  }
+  string ans = s.substr(start, maxLength);
+  return ans; // Time Complexity: O(n^2), Space Complexity: O(1)
+}
+
+// Using Manacher's Algorithm to find the LPS. It is more efficient than "expand around center" but more costly in terms of space complexity.
+string manacher(string s) {
+  int n = s.length();
+  if (n == 0) { // If the string is literally empty
+    return s; 
+  }
+  n = (2 * n) + 1; // Position count
+  int length[n]; // Length array
+  length[0] = 0;
+  length[1] = 1;
+  int c = 1; // Center position
+  int r = 2; // Center-right position
+  int i = 0; // Current right position
+  int left; // Current left position
+  int maxLength = 0, maxLengthC = 0;
+  int start = -1, end = -1, diff = -1;
+  for (i = 2; i < n; i++) {
+    // Get the currentLeftPosition (left) for currentRightPosition, i
+    left = (2 * c) - i;
+    length[i] = 0;
+    diff = r - i;
+    if (diff > 0) {
+      length[i] = min(length[left], diff);
+    }
+    while (((i + length[i]) < n && (i - length[i]) > 0) && (((i +            length[i] + 1) % 2 == 0) || (s[(i + length[i] + 1) / 2] == s[(i -        length[i] - 1) / 2]))) {
+      length[i]++;
+    }
+
+    // Tracks maxLength
+    if (length[i] > maxLength) {
+      maxLength = length[i];
+      maxLengthC = i;
+    }
+    if (i + length[i] > r) {
+      c = i;
+      r = i + length[i];
+    }
+  }
+  start = (maxLengthC - maxLength) / 2;
+  end = start + maxLength - 1;
+  string ans;
+  for (int i = start; i <= end; i++) {
+    ans += s[i];
+  }
+  return ans;
+}
+
+int main() {
+  string str = "babad";
+  string str2 = "";
+  string str3 = "caba";
+  cout << "The word is: " + str << "\n";
+  string strv2 = longestPalindrome(str);
+  cout << "The longest palindromic substring of " + str + " is \"" + strv2 + "\"\n";
+  cout << "Enter a word: ";
+  cin >> str2;
+  string str2_v2 = longestPalindrome(str2);
+  // string str2_v2 = manacher(str2); // Use manacher algorithm for user input instead
+  cout << "The longest palindromic substring of " + str2 + " is \"" + str2_v2 + "\"\n\n";
+  cout << "Using Manacher's Algorithm to find the LPS of " + str3 + "...\n";
+  string str3_v2 = manacher(str3);
+  cout << "The longest palindromic substring of " + str3 + " is \"" + str3_v2 + "\"\n";
+}
